@@ -1,0 +1,1 @@
+enum InfoStatus { danger, safe }

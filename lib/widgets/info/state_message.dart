@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
-class DangerError extends StatelessWidget {
+class StateMessage extends StatelessWidget {
   final String message;
+  final bool isDanger;
 
-  const DangerError({required this.message});
+  const StateMessage({super.key, required this.message, this.isDanger = true});
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +14,10 @@ class DangerError extends StatelessWidget {
         child: Text(
           message,
           textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: isDanger ? Colors.red : Colors.green,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );

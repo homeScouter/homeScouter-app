@@ -1,22 +1,40 @@
 import 'package:flutter/material.dart';
-import 'package:homescouter_app/widgets/danger/danger_error.dart';
-import 'package:homescouter_app/widgets/danger/danger_info_card.dart';
-import 'package:homescouter_app/widgets/danger/danger_loading.dart';
+import 'package:homescouter_app/widgets/info/state_message.dart';
+import 'package:homescouter_app/widgets/info/state_info_card.dart';
+import 'package:homescouter_app/widgets/info/danger_loading.dart';
 import '../utils/constants.dart';
 import '../widgets/header_section.dart'; // 헤더 위젯 임포트
+import 'package:homescouter_app/utils/info_status.dart';
 
-class Home extends StatelessWidget {
+class Home extends StatefulWidget {
+  @override
+  State<Home> createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
+  bool isLoading = false;
+  bool isError = false;
+  InfoStatus status = InfoStatus.danger;
+
+  void toggleStatus() {
+    setState(() {
+      status = status == InfoStatus.danger
+          ? InfoStatus.safe
+          : InfoStatus.danger;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    // 하드코딩 샘플값
-    final bool isLoading = false;
-    final bool isError = false;
-    final bool isDanger = true;
-    final String title = "위험 감지 사진";
-    final String subtitle = "사용자의 위험이 감지되는 동작을 확인했습니다.";
-    final String chipLabel = "즉시 확인 필요";
-    final String imageUrl =
-        "https://cdn.pixabay.com/photo/2023/11/24/12/06/duck-8409886_1280.png";
+    // 상태별 텍스트 및 데이터 분기
+    final title = status == InfoStatus.danger ? "위험 감지 사진" : "안전 상태";
+    final subtitle = status == InfoStatus.danger
+        ? "사용자의 위험이 감지되는 동작을 확인했습니다."
+        : "위험 요소가 감지되지 않았습니다.";
+    final chipLabel = status == InfoStatus.danger ? "즉시 확인 필요" : "이상 없음";
+    final imageUrl = status == InfoStatus.danger
+        ? "https://cdn.pixabay.com/photo/2023/11/24/12/06/duck-8409886_1280.png"
+        : null; // 안전상태는 이미지 없음
 
     return Scaffold(
       backgroundColor: Constants.primaryColor,
@@ -24,23 +42,52 @@ class Home extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            HeaderSection(), // 헤더 위젯 사용!
+            HeaderSection(),
             SizedBox(height: 18.0),
             if (isLoading)
               DangerLoading()
             else if (isError)
-              DangerError(message: "알 수 없는 오류가 발생했습니다.\n잠시 후 다시 시도해주세요.")
+              StateMessage(
+                message: "알 수 없는 오류가 발생했습니다.\n잠시 후 다시 시도해주세요.",
+                isDanger: status == InfoStatus.danger,
+              )
             else
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: DangerInfoCard(
-                  isDanger: isDanger,
+                child: StateInfoCard(
+                  status: status,
                   title: title,
                   subtitle: subtitle,
                   chipLabel: chipLabel,
                   imageUrl: imageUrl,
                 ),
               ),
+            SizedBox(height: 32.0),
+            Center(
+              child: ElevatedButton(
+                onPressed: toggleStatus,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: status == InfoStatus.danger
+                      ? Colors.green
+                      : Colors.redAccent,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 40,
+                    vertical: 16,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  status == InfoStatus.danger ? "안전 상태로 전환" : "위험 상태로 전환",
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
             SizedBox(height: 40.0),
           ],
         ),

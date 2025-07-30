@@ -10,16 +10,16 @@ class HeaderSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "안녕하세요, 사용자님!",
+            "환영한다 사용자",
             style: GoogleFonts.notoSansKr(
-              color: Colors.white,
+              color: Colors.black,
               fontSize: 26.0,
               fontWeight: FontWeight.bold,
             ),
           ),
           SizedBox(height: 6.0),
           Text(
-            "오늘도 안전한 하루 보내세요 🦺",
+            "오늘도 감시 당신의 안전을",
             style: GoogleFonts.notoSansKr(
               color: Colors.white.withOpacity(0.75),
               fontSize: 16.0,
