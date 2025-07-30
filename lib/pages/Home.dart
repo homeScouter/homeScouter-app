@@ -33,7 +33,7 @@ class _HomeState extends State<Home> {
         : "위험 요소가 감지되지 않았습니다.";
     final chipLabel = status == InfoStatus.danger ? "즉시 확인 필요" : "이상 없음";
     final imageUrl = status == InfoStatus.danger
-        ? "https://cdn.pixabay.com/photo/2023/11/24/12/06/duck-8409886_1280.png"
+        ? "assets/danger.webp"
         : null; // 안전상태는 이미지 없음
 
     return Scaffold(

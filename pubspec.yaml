@@ -1,7 +1,7 @@
 name: homescouter_app
 description: "A new Flutter project."
 
-publish_to: "none" # Remove this line if you wish to publish to pub.dev
+publish_to: "none"
 
 version: 1.0.0+1
 
@@ -11,19 +11,26 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
   cupertino_icons: ^1.0.8
-
-  # REST API 통신용 HTTP 패키지
   http: ^1.4.0
   google_fonts: ^6.2.1
   flutter_screenutil: ^5.9.3
+  flutter_native_splash: ^2.4.6
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
   flutter_lints: ^5.0.0
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/home-scouter-img.png
+    - assets/danger.webp
+
+flutter_native_splash:
+  color: "#2196F3" # Colors.blue (Hex)
+  image: assets/home-scouter-img.png
+  android: true
+  ios: true
+  web: true
