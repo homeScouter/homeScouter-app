@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:sidebarx/sidebarx.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:homescouter_app/widgets/sidebar/app_sidebar.dart';
 import 'package:homescouter_app/widgets/info/state_message.dart';
 import 'package:homescouter_app/widgets/info/state_info_card.dart';
 import 'package:homescouter_app/widgets/info/danger_loading.dart';
 import '../utils/constants.dart';
-import '../widgets/header_section.dart'; // 헤더 위젯 임포트
+import '../widgets/header/header_section.dart';
 import 'package:homescouter_app/utils/info_status.dart';
 
 class Home extends StatefulWidget {
@@ -12,6 +15,13 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  final SidebarXController _sidebarController = SidebarXController(
+    selectedIndex: 0,
+    extended: true,
+  );
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   bool isLoading = false;
   bool isError = false;
   InfoStatus status = InfoStatus.danger;
@@ -26,24 +36,45 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    // 상태별 텍스트 및 데이터 분기
     final title = status == InfoStatus.danger ? "위험 감지 사진" : "안전 상태";
     final subtitle = status == InfoStatus.danger
         ? "사용자의 위험이 감지되는 동작을 확인했습니다."
         : "위험 요소가 감지되지 않았습니다.";
     final chipLabel = status == InfoStatus.danger ? "즉시 확인 필요" : "이상 없음";
-    final imageUrl = status == InfoStatus.danger
-        ? "assets/danger.webp"
-        : null; // 안전상태는 이미지 없음
+    final imageUrl = status == InfoStatus.danger ? "assets/danger.webp" : null;
 
     return Scaffold(
+      key: _scaffoldKey,
+
       backgroundColor: Constants.primaryColor,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 1,
+        leading: IconButton(
+          icon: const Icon(Icons.menu),
+          color: Constants.primaryColor,
+          onPressed: () {
+            _scaffoldKey.currentState?.openDrawer();
+          },
+        ),
+        centerTitle: true,
+        title: Text(
+          'homeScouter',
+          style: GoogleFonts.notoSansKr(
+            color: Constants.primaryColor,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        ),
+      ),
+      drawer: Drawer(child: AppSidebar(controller: _sidebarController)),
+
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             HeaderSection(),
-            SizedBox(height: 18.0),
+            const SizedBox(height: 18.0),
             if (isLoading)
               DangerLoading()
             else if (isError)
@@ -62,7 +93,7 @@ class _HomeState extends State<Home> {
                   imageUrl: imageUrl,
                 ),
               ),
-            SizedBox(height: 32.0),
+            const SizedBox(height: 32.0),
             Center(
               child: ElevatedButton(
                 onPressed: toggleStatus,
@@ -80,7 +111,7 @@ class _HomeState extends State<Home> {
                 ),
                 child: Text(
                   status == InfoStatus.danger ? "안전 상태로 전환" : "위험 상태로 전환",
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -88,7 +119,7 @@ class _HomeState extends State<Home> {
                 ),
               ),
             ),
-            SizedBox(height: 40.0),
+            const SizedBox(height: 40.0),
           ],
         ),
       ),
