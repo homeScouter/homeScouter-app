@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:homescouter_app/pages/Home.dart';
 import '../utils/constants.dart';
 import '../widgets/app_button.dart';
 
@@ -45,7 +46,11 @@ class Login extends StatelessWidget {
                   AppButton(
                     text: "로그인",
                     type: ButtonType.PLAIN,
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (context) => Home()),
+                      );
+                    },
                   ),
                   SizedBox(height: 15.0),
                   AppButton(

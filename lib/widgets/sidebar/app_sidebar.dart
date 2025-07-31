@@ -1,5 +1,5 @@
-// sidebar_widget.dart
 import 'package:flutter/material.dart';
+import 'package:homescouter_app/pages/Login.dart';
 import 'package:homescouter_app/utils/constants.dart';
 import 'package:sidebarx/sidebarx.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -52,20 +52,66 @@ class AppSidebar extends StatelessWidget {
       ),
       headerBuilder: (context, extended) => Padding(
         padding: const EdgeInsets.all(20.0),
-        child: CircleAvatar(
-          radius: 28,
-          backgroundColor: Constants.primaryColor.withOpacity(0.1),
-          child: Icon(
-            Icons.account_circle,
-            size: 38,
-            color: Constants.primaryColor,
-          ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 28,
+              backgroundColor: Constants.primaryColor.withOpacity(0.1),
+              child: Icon(
+                Icons.account_circle,
+                size: 38,
+                color: Constants.primaryColor,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              '사용자',
+              style: GoogleFonts.notoSansKr(
+                color: Constants.primaryColor,
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+              ),
+            ),
+          ],
         ),
       ),
+
+      footerDivider: Divider(
+        color: Constants.primaryColor.withOpacity(0.3),
+        height: 1,
+      ),
+      footerBuilder: (context, extended) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: InkWell(
+            onTap: () {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => Login()),
+              );
+            },
+            borderRadius: BorderRadius.circular(10),
+            child: Row(
+              children: [
+                Icon(Icons.logout, color: Colors.redAccent, size: 22),
+                const SizedBox(width: 12),
+                Text(
+                  '로그아웃',
+                  style: GoogleFonts.notoSansKr(
+                    color: Colors.redAccent,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+
       items: const [
         SidebarXItem(icon: Icons.home, label: '홈'),
-        SidebarXItem(icon: Icons.search, label: '검색'),
-        SidebarXItem(icon: Icons.favorite, label: '즐겨찾기'),
+        SidebarXItem(icon: Icons.search, label: '기록'),
+        SidebarXItem(icon: Icons.settings, label: '설정'),
       ],
     );
   }
