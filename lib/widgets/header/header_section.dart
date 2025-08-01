@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../utils/constant_colors.dart';
 
 class HeaderSection extends StatelessWidget {
   @override
@@ -9,13 +10,24 @@ class HeaderSection extends StatelessWidget {
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          color: Colors.white, // 카드 내부 배경
+          // 그라데이션 배경 추가! (더 예뻐집니다)
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Constants.primaryColor,
+              Constants.primaryColor.withOpacity(0.8),
+              Constants.secondaryColor.withOpacity(0.6),
+            ],
+          ),
           borderRadius: BorderRadius.circular(20.0),
+          // 더 예쁜 그림자 효과
           boxShadow: [
             BoxShadow(
-              color: Colors.black12,
-              blurRadius: 16.0,
-              offset: Offset(4, 8),
+              color: Constants.primaryColor.withOpacity(0.3),
+              blurRadius: 20.0,
+              offset: Offset(0, 10),
+              spreadRadius: 2,
             ),
           ],
         ),
@@ -23,19 +35,37 @@ class HeaderSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "환영한다 사용자",
-              style: GoogleFonts.notoSansKr(
-                color: Color(0xFF222438),
-                fontSize: 26.0,
-                fontWeight: FontWeight.bold,
-              ),
+            // 아이콘 추가해서 더 친근하게
+            Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.person_outline,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+                SizedBox(width: 12),
+                Text(
+                  "환영합니다! 사용자 👋",
+                  style: GoogleFonts.notoSansKr(
+                    color: Colors.white,
+                    fontSize: 26.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
             SizedBox(height: 8.0),
             Text(
-              "오늘도 감시 당신의 안전을",
+              "오늘도 안전하게 지켜드릴게요",
               style: GoogleFonts.notoSansKr(
-                color: Colors.grey[800]?.withOpacity(0.75),
+                color: Colors.white.withOpacity(0.9),
                 fontSize: 15.0,
               ),
             ),
