@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:homescouter_app/pages/Home.dart';
-import '../utils/constants.dart';
+import '../utils/constant_colors.dart';
 import '../widgets/app_button.dart';
 
 class Login extends StatelessWidget {
@@ -15,7 +15,7 @@ class Login extends StatelessWidget {
             Container(
               padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
               decoration: BoxDecoration(
-                color: Constants.scaffoldBackgroundColor,
+                color: Constants.accentColor,
                 borderRadius: BorderRadius.only(
                   topRight: Radius.circular(15.0),
                   topLeft: Radius.circular(15.0),

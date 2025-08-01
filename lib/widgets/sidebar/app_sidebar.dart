@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:homescouter_app/pages/Login.dart';
-import 'package:homescouter_app/utils/constants.dart';
+import 'package:homescouter_app/utils/constant_colors.dart';
 import 'package:sidebarx/sidebarx.dart';
 import 'package:google_fonts/google_fonts.dart';
 

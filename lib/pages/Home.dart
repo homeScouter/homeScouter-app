@@ -5,7 +5,7 @@ import 'package:homescouter_app/widgets/sidebar/app_sidebar.dart';
 import 'package:homescouter_app/widgets/info/state_message.dart';
 import 'package:homescouter_app/widgets/info/state_info_card.dart';
 import 'package:homescouter_app/widgets/info/danger_loading.dart';
-import '../utils/constants.dart';
+import '../utils/constant_colors.dart';
 import '../widgets/header/header_section.dart';
 import 'package:homescouter_app/utils/info_status.dart';
 
@@ -14,7 +14,7 @@ class Home extends StatefulWidget {
   State<Home> createState() => _HomeState();
 }
 
-class _HomeState extends State<Home> {
+class _HomeState extends State<Home> with TickerProviderStateMixin {
   final SidebarXController _sidebarController = SidebarXController(
     selectedIndex: 0,
     extended: true,
@@ -26,7 +26,40 @@ class _HomeState extends State<Home> {
   bool isError = false;
   InfoStatus status = InfoStatus.danger;
 
+  // 버튼 애니메이션을 위한 컨트롤러
+  late AnimationController _buttonAnimationController;
+  late Animation<double> _buttonScaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // 버튼 애니메이션 설정
+    _buttonAnimationController = AnimationController(
+      duration: Duration(milliseconds: 150),
+      vsync: this,
+    );
+
+    _buttonScaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
+      CurvedAnimation(
+        parent: _buttonAnimationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _buttonAnimationController.dispose();
+    super.dispose();
+  }
+
   void toggleStatus() {
+    // 버튼 누를 때 애니메이션
+    _buttonAnimationController.forward().then((_) {
+      _buttonAnimationController.reverse();
+    });
+
     setState(() {
       status = status == InfoStatus.danger
           ? InfoStatus.safe
@@ -45,11 +78,12 @@ class _HomeState extends State<Home> {
 
     return Scaffold(
       key: _scaffoldKey,
-
-      backgroundColor: Constants.primaryColor,
+      // 배경색을 더 부드럽게
+      backgroundColor: Constants.backgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 1,
+        elevation: 2,
+        shadowColor: Colors.black12,
         leading: IconButton(
           icon: const Icon(Icons.menu),
           color: Constants.primaryColor,
@@ -58,13 +92,32 @@ class _HomeState extends State<Home> {
           },
         ),
         centerTitle: true,
-        title: Text(
-          'homeScouter',
-          style: GoogleFonts.notoSansKr(
-            color: Constants.primaryColor,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 앱 아이콘 추가
+            Container(
+              padding: EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Constants.primaryColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                Icons.security,
+                color: Constants.primaryColor,
+                size: 20,
+              ),
+            ),
+            SizedBox(width: 8),
+            Text(
+              'homeScouter',
+              style: GoogleFonts.notoSansKr(
+                color: Constants.primaryColor,
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              ),
+            ),
+          ],
         ),
       ),
       drawer: Drawer(child: AppSidebar(controller: _sidebarController)),
@@ -94,29 +147,80 @@ class _HomeState extends State<Home> {
                 ),
               ),
             const SizedBox(height: 32.0),
+
+            // 개선된 버튼
             Center(
-              child: ElevatedButton(
-                onPressed: toggleStatus,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: status == InfoStatus.danger
-                      ? Colors.green
-                      : Colors.redAccent,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 40,
-                    vertical: 16,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: Text(
-                  status == InfoStatus.danger ? "안전 상태로 전환" : "위험 상태로 전환",
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
+              child: AnimatedBuilder(
+                animation: _buttonScaleAnimation,
+                builder: (context, child) {
+                  return Transform.scale(
+                    scale: _buttonScaleAnimation.value,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: status == InfoStatus.danger
+                              ? [
+                                  Constants.safeColor,
+                                  Constants.safeColor.withOpacity(0.8),
+                                ]
+                              : [
+                                  Constants.dangerColor,
+                                  Constants.dangerColor.withOpacity(0.8),
+                                ],
+                        ),
+                        borderRadius: BorderRadius.circular(25),
+                        boxShadow: [
+                          BoxShadow(
+                            color:
+                                (status == InfoStatus.danger
+                                        ? Constants.safeColor
+                                        : Constants.dangerColor)
+                                    .withOpacity(0.4),
+                            blurRadius: 12.0,
+                            offset: Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: ElevatedButton(
+                        onPressed: toggleStatus,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 40,
+                            vertical: 16,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              status == InfoStatus.danger
+                                  ? Icons.security
+                                  : Icons.warning,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              status == InfoStatus.danger
+                                  ? "안전 상태로 전환"
+                                  : "위험 상태로 전환",
+                              style: GoogleFonts.notoSansKr(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
             const SizedBox(height: 40.0),
