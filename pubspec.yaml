@@ -17,6 +17,8 @@ dependencies:
   flutter_screenutil: ^5.9.3
   flutter_native_splash: ^2.4.6
   sidebarx: ^0.17.2
+  firebase_messaging: ^16.0.0
+  firebase_core: ^4.0.0
 
 dev_dependencies:
   flutter_test:
