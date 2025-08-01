@@ -95,7 +95,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 앱 아이콘 추가
             Container(
               padding: EdgeInsets.all(6),
               decoration: BoxDecoration(

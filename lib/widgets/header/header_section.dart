@@ -10,7 +10,6 @@ class HeaderSection extends StatelessWidget {
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          // 그라데이션 배경 추가! (더 예뻐집니다)
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -21,21 +20,11 @@ class HeaderSection extends StatelessWidget {
             ],
           ),
           borderRadius: BorderRadius.circular(20.0),
-          // 더 예쁜 그림자 효과
-          boxShadow: [
-            BoxShadow(
-              color: Constants.primaryColor.withOpacity(0.3),
-              blurRadius: 20.0,
-              offset: Offset(0, 10),
-              spreadRadius: 2,
-            ),
-          ],
         ),
         padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 32.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 아이콘 추가해서 더 친근하게
             Row(
               children: [
                 Container(

@@ -96,15 +96,6 @@ class _StateInfoCardState extends State<StateInfoCard>
                         ],
                 ),
                 borderRadius: BorderRadius.circular(20.0),
-                // 더 예쁜 그림자
-                boxShadow: [
-                  BoxShadow(
-                    color: chipColor.withOpacity(0.2),
-                    blurRadius: 20.0,
-                    offset: Offset(0, 10),
-                    spreadRadius: 2,
-                  ),
-                ],
                 // 테두리 추가
                 border: Border.all(
                   color: chipColor.withOpacity(0.3),
@@ -125,13 +116,6 @@ class _StateInfoCardState extends State<StateInfoCard>
                         ],
                       ),
                       shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: chipColor.withOpacity(0.3),
-                          blurRadius: 8.0,
-                          offset: Offset(0, 4),
-                        ),
-                      ],
                     ),
                     child: Icon(icon, color: chipColor, size: 32.0),
                   ),
@@ -172,13 +156,6 @@ class _StateInfoCardState extends State<StateInfoCard>
                               ],
                             ),
                             borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: chipColor.withOpacity(0.3),
-                                blurRadius: 4.0,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
                           ),
                           padding: EdgeInsets.symmetric(
                             horizontal: 16.0,
@@ -198,16 +175,9 @@ class _StateInfoCardState extends State<StateInfoCard>
                           Container(
                             margin: EdgeInsets.only(top: 16.0),
                             width: double.infinity,
-                            height: 200, // 높이를 줄여서 더 보기 좋게
+                            height: 800,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(12.0),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black26,
-                                  blurRadius: 8.0,
-                                  offset: Offset(0, 4),
-                                ),
-                              ],
                             ),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(12.0),
