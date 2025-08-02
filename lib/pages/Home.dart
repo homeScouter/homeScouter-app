@@ -1,3 +1,5 @@
+// lib/pages/home.dart
+
 import 'package:flutter/material.dart';
 import 'package:sidebarx/sidebarx.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -8,6 +10,9 @@ import 'package:homescouter_app/widgets/info/danger_loading.dart';
 import '../utils/constant_colors.dart';
 import '../widgets/header/header_section.dart';
 import 'package:homescouter_app/utils/info_status.dart';
+
+import 'package:homescouter_app/services/notification_service.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -24,7 +29,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
   bool isLoading = false;
   bool isError = false;
-  InfoStatus status = InfoStatus.danger;
+  InfoStatus status = InfoStatus.safe;
 
   // 버튼 애니메이션을 위한 컨트롤러
   late AnimationController _buttonAnimationController;
@@ -46,6 +51,16 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         curve: Curves.easeInOut,
       ),
     );
+
+    // ⭐️ 초기 상태 확인 로직은 그대로 두지만, `safe` 상태에서는 알림을 강제로 띄우지 않습니다.
+    // 이는 FCM 메시지를 통해 전달된 위험 상황에만 반응하도록 합니다.
+    // (예: 앱 종료 중 위험 알림을 받았고, 앱을 열었을 때 해당 알림 내용으로 다이얼로그를 띄우고 싶을 때)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 만약 앱이 FCM 알림을 통해 시작되었고, 그 알림이 위험 상태를 나타낸다면
+      // NotificationService가 이미 초기 처리를 했을 것입니다.
+      // 여기서는 별도의 "초기 위험 알림"을 띄울 필요는 없습니다.
+      // _checkInitialDangerStatus(); // 이 부분은 이제 필요 없을 수 있습니다.
+    });
   }
 
   @override
@@ -61,10 +76,40 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     });
 
     setState(() {
-      status = status == InfoStatus.danger
+      final nextStatus = status == InfoStatus.danger
           ? InfoStatus.safe
           : InfoStatus.danger;
+
+      // ⭐️ 상태가 danger로 변경될 때만 알림 시뮬레이션 함수 호출
+      if (nextStatus == InfoStatus.danger) {
+        _simulateFCMNotification();
+      }
+      status = nextStatus;
     });
+  }
+
+  // ⭐️ FCM 알림 시뮬레이션 함수 (테스트 버튼/상태 전환용)
+  void _simulateFCMNotification() {
+    // 위험 상태 알림 메시지를 시뮬레이션합니다.
+    final simulatedMessage = RemoteMessage(
+      data: {
+        'is_dangerous': 'true', // 백엔드에서 보낼 실제 값
+        'alert_type': '강제 감지',
+        'severity': '높음',
+        'timestamp': DateTime.now().toIso8601String(),
+      },
+      notification: RemoteNotification(
+        title: '🔴 홈 스카우터 경고 🔴',
+        body: '위험 상태가 감지되었습니다. 앱에서 즉시 확인하세요.',
+      ),
+    );
+
+    // NotificationService를 통해 메시지 처리 로직을 호출 (포그라운드 상태로 가정)
+    // isForeground: true로 설정하여 앱이 현재 포그라운드에 있다고 가정하고 처리합니다.
+    NotificationService.handleIncomingMessage(
+      simulatedMessage,
+      isForeground: true,
+    );
   }
 
   @override
@@ -172,8 +217,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           BoxShadow(
                             color:
                                 (status == InfoStatus.danger
-                                        ? Constants.safeColor
-                                        : Constants.dangerColor)
+                                        ? Constants
+                                              .safeColor // 안전 상태로 변경 버튼일 때 그림자 색
+                                        : Constants
+                                              .dangerColor) // 위험 상태로 변경 버튼일 때 그림자 색
                                     .withOpacity(0.4),
                             blurRadius: 12.0,
                             offset: Offset(0, 6),
@@ -198,8 +245,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           children: [
                             Icon(
                               status == InfoStatus.danger
-                                  ? Icons.security
-                                  : Icons.warning,
+                                  ? Icons
+                                        .security // 현재 danger 상태 -> 안전으로 변경 버튼
+                                  : Icons.warning, // 현재 safe 상태 -> 위험으로 변경 버튼
                               color: Colors.white,
                               size: 20,
                             ),
@@ -220,6 +268,33 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     ),
                   );
                 },
+              ),
+            ),
+            const SizedBox(height: 20.0), // 버튼 간 간격 추가
+            // ⭐️ 테스트용 FCM 알림 시뮬레이션 버튼 (여전히 필요할 수 있습니다)
+            Center(
+              child: ElevatedButton.icon(
+                onPressed: _simulateFCMNotification, // 위에 만든 시뮬레이션 함수 연결
+                icon: const Icon(Icons.notifications_active),
+                label: Text(
+                  '수동 위험 알림 테스트', // 문구 변경
+                  style: GoogleFonts.notoSansKr(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Constants.dangerColor.withOpacity(0.8),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  elevation: 5,
+                ),
               ),
             ),
             const SizedBox(height: 40.0),
