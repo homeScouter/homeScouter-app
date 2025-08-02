@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:homescouter_app/pages/Login.dart';
 import '../utils/constant_colors.dart';
 import '../widgets/app_button.dart';
@@ -219,7 +220,10 @@ class _SignUpState extends State<SignUp> {
               SizedBox(height: 18),
               Text(
                 "이미 계정이 있으신가요?",
-                style: TextStyle(fontSize: 13, color: Constants.textSecondary),
+                style: GoogleFonts.notoSansKr(
+                  fontSize: 13,
+                  color: Constants.textSecondary,
+                ),
               ),
               TextButton(
                 onPressed: () {
@@ -229,7 +233,7 @@ class _SignUpState extends State<SignUp> {
                 },
                 child: Text(
                   "로그인하러 가기",
-                  style: TextStyle(
+                  style: GoogleFonts.notoSansKr(
                     color: Constants.accentColor,
                     fontWeight: FontWeight.bold,
                   ),

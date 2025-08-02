@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:homescouter_app/pages/sign_up.dart';
 import '../utils/constant_colors.dart';
 import '../widgets/app_button.dart';
@@ -50,7 +51,7 @@ class Login extends StatelessWidget {
                     Text(
                       "당신의 집을 안전하게 지켜드립니다",
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: GoogleFonts.notoSansKr(
                         color: Constants.textSecondary,
                         fontSize: 15.0,
                         fontWeight: FontWeight.w500,
@@ -66,7 +67,7 @@ class Login extends StatelessWidget {
                     Text(
                       "카메라로 위험상태를 탐지하고\n긴급 상황엔 신고까지!",
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: GoogleFonts.notoSansKr(
                         color: Constants.textPrimary.withOpacity(0.9),
                         fontSize: 14.5,
                         height: 1.45,
@@ -99,7 +100,7 @@ class Login extends StatelessWidget {
               SizedBox(height: 24.0),
               Text(
                 "© 2025 Home Scouter",
-                style: TextStyle(
+                style: GoogleFonts.notoSansKr(
                   fontSize: 12,
                   color: Constants.textSecondary,
                   letterSpacing: 0.2,
