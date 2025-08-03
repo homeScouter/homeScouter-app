@@ -1,6 +1,5 @@
-// lib/pages/home.dart
-
 import 'package:flutter/material.dart';
+import 'package:homescouter_app/pages/danger__history_page.dart';
 import 'package:sidebarx/sidebarx.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:homescouter_app/widgets/sidebar/app_sidebar.dart';
@@ -31,7 +30,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   bool isError = false;
   InfoStatus status = InfoStatus.safe;
 
-  // 버튼 애니메이션을 위한 컨트롤러
   late AnimationController _buttonAnimationController;
   late Animation<double> _buttonScaleAnimation;
 
@@ -39,7 +37,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   void initState() {
     super.initState();
 
-    // 버튼 애니메이션 설정
     _buttonAnimationController = AnimationController(
       duration: Duration(milliseconds: 150),
       vsync: this,
@@ -52,25 +49,46 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       ),
     );
 
-    // ⭐️ 초기 상태 확인 로직은 그대로 두지만, `safe` 상태에서는 알림을 강제로 띄우지 않습니다.
-    // 이는 FCM 메시지를 통해 전달된 위험 상황에만 반응하도록 합니다.
-    // (예: 앱 종료 중 위험 알림을 받았고, 앱을 열었을 때 해당 알림 내용으로 다이얼로그를 띄우고 싶을 때)
+    // ◼️ 사이드바 인덱스 변경 감지 리스너 등록
+    _sidebarController.addListener(_onSidebarChanged);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 만약 앱이 FCM 알림을 통해 시작되었고, 그 알림이 위험 상태를 나타낸다면
-      // NotificationService가 이미 초기 처리를 했을 것입니다.
-      // 여기서는 별도의 "초기 위험 알림"을 띄울 필요는 없습니다.
-      // _checkInitialDangerStatus(); // 이 부분은 이제 필요 없을 수 있습니다.
+      // 기존 알림 초기화 논리
     });
+  }
+
+  // ◼️ 메뉴 선택 시 라우팅 처리
+  void _onSidebarChanged() {
+    final idx = _sidebarController.selectedIndex;
+    if (!mounted) return;
+    switch (idx) {
+      case 0:
+        // 홈이므로 자기 자신이므로 별도 라우팅 없음
+        break;
+      case 1:
+        // 기록(위험 기록) → DangerHistoryPage로 이동
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => DangerHistoryPage()),
+        );
+        break;
+      case 2:
+        // 설정 메뉴가 있다면 설정 페이지로 이동(없으면 주석 처리)
+        // Navigator.of(context).pushReplacement(
+        //   MaterialPageRoute(builder: (_) => SettingsPage()),
+        // );
+        break;
+    }
   }
 
   @override
   void dispose() {
     _buttonAnimationController.dispose();
+    _sidebarController.removeListener(_onSidebarChanged); // ◼️ 리스너 해제 중요
+    _sidebarController.dispose();
     super.dispose();
   }
 
   void toggleStatus() {
-    // 버튼 누를 때 애니메이션
     _buttonAnimationController.forward().then((_) {
       _buttonAnimationController.reverse();
     });
@@ -80,7 +98,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           ? InfoStatus.safe
           : InfoStatus.danger;
 
-      // ⭐️ 상태가 danger로 변경될 때만 알림 시뮬레이션 함수 호출
       if (nextStatus == InfoStatus.danger) {
         _simulateFCMNotification();
       }
@@ -88,12 +105,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     });
   }
 
-  // ⭐️ FCM 알림 시뮬레이션 함수 (테스트 버튼/상태 전환용)
   void _simulateFCMNotification() {
-    // 위험 상태 알림 메시지를 시뮬레이션합니다.
     final simulatedMessage = RemoteMessage(
       data: {
-        'is_dangerous': 'true', // 백엔드에서 보낼 실제 값
+        'is_dangerous': 'true',
         'alert_type': '강제 감지',
         'severity': '높음',
         'timestamp': DateTime.now().toIso8601String(),
@@ -104,8 +119,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       ),
     );
 
-    // NotificationService를 통해 메시지 처리 로직을 호출 (포그라운드 상태로 가정)
-    // isForeground: true로 설정하여 앱이 현재 포그라운드에 있다고 가정하고 처리합니다.
     NotificationService.handleIncomingMessage(
       simulatedMessage,
       isForeground: true,
@@ -123,7 +136,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
     return Scaffold(
       key: _scaffoldKey,
-      // 배경색을 더 부드럽게
       backgroundColor: Constants.backgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -191,8 +203,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 ),
               ),
             const SizedBox(height: 32.0),
-
-            // 개선된 버튼
             Center(
               child: AnimatedBuilder(
                 animation: _buttonScaleAnimation,
@@ -217,10 +227,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           BoxShadow(
                             color:
                                 (status == InfoStatus.danger
-                                        ? Constants
-                                              .safeColor // 안전 상태로 변경 버튼일 때 그림자 색
-                                        : Constants
-                                              .dangerColor) // 위험 상태로 변경 버튼일 때 그림자 색
+                                        ? Constants.safeColor
+                                        : Constants.dangerColor)
                                     .withOpacity(0.4),
                             blurRadius: 12.0,
                             offset: Offset(0, 6),
@@ -245,9 +253,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           children: [
                             Icon(
                               status == InfoStatus.danger
-                                  ? Icons
-                                        .security // 현재 danger 상태 -> 안전으로 변경 버튼
-                                  : Icons.warning, // 현재 safe 상태 -> 위험으로 변경 버튼
+                                  ? Icons.security
+                                  : Icons.warning,
                               color: Colors.white,
                               size: 20,
                             ),
@@ -270,14 +277,13 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 },
               ),
             ),
-            const SizedBox(height: 20.0), // 버튼 간 간격 추가
-            // ⭐️ 테스트용 FCM 알림 시뮬레이션 버튼 (여전히 필요할 수 있습니다)
+            const SizedBox(height: 20.0),
             Center(
               child: ElevatedButton.icon(
-                onPressed: _simulateFCMNotification, // 위에 만든 시뮬레이션 함수 연결
+                onPressed: _simulateFCMNotification,
                 icon: const Icon(Icons.notifications_active),
                 label: Text(
-                  '수동 위험 알림 테스트', // 문구 변경
+                  '수동 위험 알림 테스트',
                   style: GoogleFonts.notoSansKr(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
