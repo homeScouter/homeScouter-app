@@ -1,8 +1,13 @@
+// lib/pages/SignUp.dart
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import 'package:homescouter_app/pages/Login.dart';
 import '../utils/constant_colors.dart';
 import '../widgets/app_button.dart';
+import '../services/auth_service.dart';
+import '../models/user_model.dart';
 
 class SignUp extends StatefulWidget {
   @override
@@ -12,15 +17,18 @@ class SignUp extends StatefulWidget {
 class _SignUpState extends State<SignUp> {
   // 입력값 컨트롤러
   final _nameController = TextEditingController();
-  final _idController = TextEditingController();
+  final _idController = TextEditingController(); // 백엔드에서는 email로 사용됨
   final _passwordController = TextEditingController();
   final _phoneController = TextEditingController();
   final _tapoController = TextEditingController();
 
   bool _hidePassword = true;
+  bool _isLoading = false; // 로딩 상태를 관리할 변수
 
-  // 예시용 폼 validation (실 서비스 시 보완 필요)
-  final _formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>(); // 폼 유효성 검사를 위한 GlobalKey
+
+  // AuthService 인스턴스 생성
+  final AuthService _authService = AuthService();
 
   @override
   void dispose() {
@@ -30,6 +38,58 @@ class _SignUpState extends State<SignUp> {
     _phoneController.dispose();
     _tapoController.dispose();
     super.dispose();
+  }
+
+  // 회원가입 처리 메서드
+  Future<void> _handleSignUp() async {
+    if (_formKey.currentState?.validate() == true) {
+      setState(() {
+        _isLoading = true; // 로딩 시작
+      });
+
+      try {
+        final UserModel newUser = await _authService.signUp(
+          name: _nameController.text.trim(),
+          id: _idController.text.trim(),
+          password: _passwordController.text.trim(),
+          phone: _phoneController.text.trim(),
+          tapoCode: _tapoController.text.trim(),
+        );
+
+        // 성공 메시지 및 로그인 페이지로 이동
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("${newUser.name}님, 회원가입이 완료되었습니다!"),
+            backgroundColor: Constants.primaryColor,
+          ),
+        );
+        Navigator.of(
+          context,
+        ).pushReplacement(MaterialPageRoute(builder: (context) => Login()));
+      } on AuthException catch (e) {
+        // 정의된 인증 예외 처리
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("회원가입 실패: ${e.message}"),
+            backgroundColor: Colors.red,
+          ),
+        );
+        print("회원가입 오류: ${e.message}");
+      } catch (e) {
+        // 그 외 알 수 없는 오류
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("알 수 없는 오류가 발생했습니다. 다시 시도해주세요."),
+            backgroundColor: Colors.red,
+          ),
+        );
+        print("예상치 못한 오류: $e");
+      } finally {
+        setState(() {
+          _isLoading = false; // 로딩 종료
+        });
+      }
+    }
   }
 
   @override
@@ -97,12 +157,13 @@ class _SignUpState extends State<SignUp> {
                             : null,
                       ),
                       SizedBox(height: 13),
-                      // 아이디
+                      // 아이디 (이메일로 사용)
                       TextFormField(
                         controller: _idController,
                         textInputAction: TextInputAction.next,
+                        keyboardType: TextInputType.emailAddress, // 이메일 키보드 타입
                         decoration: InputDecoration(
-                          labelText: "아이디",
+                          labelText: "아이디 (이메일)", // 사용자에게 이메일임을 명시
                           prefixIcon: Icon(
                             Icons.alternate_email,
                             color: Constants.accentColor,
@@ -113,10 +174,16 @@ class _SignUpState extends State<SignUp> {
                           filled: true,
                           fillColor: Constants.backgroundColor,
                         ),
-                        validator: (value) =>
-                            (value == null || value.trim().isEmpty)
-                            ? "아이디를 입력하세요"
-                            : null,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return "아이디(이메일)를 입력하세요";
+                          }
+                          // 간단한 이메일 유효성 검사 (더 강력한 정규식 사용 가능)
+                          if (!value.contains('@') || !value.contains('.')) {
+                            return "유효한 이메일 형식이 아닙니다.";
+                          }
+                          return null;
+                        },
                       ),
                       SizedBox(height: 13),
                       // 비밀번호
@@ -147,8 +214,9 @@ class _SignUpState extends State<SignUp> {
                           ),
                         ),
                         validator: (value) =>
-                            (value == null || value.trim().length < 4)
-                            ? "4글자 이상 비밀번호"
+                            (value == null ||
+                                value.trim().length < 6) // Firebase 최소 6자 권장
+                            ? "6글자 이상 비밀번호를 입력하세요"
                             : null,
                       ),
                       SizedBox(height: 13),
@@ -170,8 +238,9 @@ class _SignUpState extends State<SignUp> {
                           fillColor: Constants.backgroundColor,
                         ),
                         validator: (value) =>
-                            (value == null || value.trim().length < 9)
-                            ? "전화번호를 입력하세요"
+                            (value == null ||
+                                value.trim().length < 10) // 실제 전화번호 길이 고려
+                            ? "유효한 전화번호를 입력하세요"
                             : null,
                       ),
                       SizedBox(height: 13),
@@ -199,19 +268,15 @@ class _SignUpState extends State<SignUp> {
                       ),
                       SizedBox(height: 27),
                       AppButton(
-                        text: "회원가입 완료",
+                        text: _isLoading
+                            ? "회원가입 중..."
+                            : "회원가입 완료", // 로딩 상태에 따라 텍스트 변경
                         type: ButtonType.PRIMARY,
-                        onPressed: () {
-                          if (_formKey.currentState?.validate() == true) {
-                            // 회원가입 처리 (백엔드 연동 등)
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text("회원가입이 완료되었습니다!"),
-                                backgroundColor: Constants.primaryColor,
-                              ),
-                            );
-                          }
-                        },
+                        onPressed: _isLoading
+                            ? () {} // <-- 로딩 중일 때 null 대신 비어있는 익명 함수를 전달합니다.
+                            : () {
+                                _handleSignUp(); // _handleSignUp()를 호출합니다.
+                              },
                       ),
                     ],
                   ),
