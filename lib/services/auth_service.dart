@@ -36,6 +36,7 @@ class AuthService {
     required String password,
     required String phone,
     required String tapoCode,
+    required String fcmToken,
   }) async {
     final url = Uri.parse('$_baseUrl/signup/'); // 회원가입 API 엔드포인트
 
@@ -50,17 +51,19 @@ class AuthService {
           'id': id, // 백엔드에서는 이걸 email로 사용합니다.
           'password': password,
           'phone': phone,
-          'tapoCode': tapoCode, // 백엔드 필드명과 일치
+          'tapoCode': tapoCode,
+          'fcmToken': fcmToken,
         }),
       );
 
       if (response.statusCode == 201) {
-        // 성공 (HTTP 201 Created)
         final Map<String, dynamic> responseBody = jsonDecode(response.body);
-        // 백엔드에서 반환하는 UID, email, name 등을 포함하는 JSON 데이터를 UserModel로 변환하여 반환
-        return UserModel.fromJson(
-          responseBody,
-        ); // 백엔드 응답이 UserModel 형식과 일치한다고 가정
+        if (responseBody.containsKey('user') &&
+            responseBody['user'] is Map<String, dynamic>) {
+          return UserModel.fromJson(responseBody['user']);
+        } else {
+          throw AuthException('서버 응답 형식이 올바르지 않습니다.');
+        }
       } else {
         // 백엔드에서 에러 응답을 받았을 경우
         final Map<String, dynamic> errorBody = jsonDecode(response.body);
@@ -84,9 +87,6 @@ class AuthService {
     } on http.ClientException catch (e) {
       // 네트워크 연결 문제 또는 서버 응답 없음
       throw NetworkException('네트워크 연결에 문제가 있습니다: ${e.message}');
-    } catch (e) {
-      // 그 외 알 수 없는 오류
-      throw AuthException('회원가입 중 예상치 못한 오류 발생: $e');
     }
   }
 }

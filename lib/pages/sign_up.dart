@@ -2,12 +2,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_messaging/firebase_messaging.dart'; // ⭐️ 추가: FCM 토큰을 얻기 위해 필요
 
 import 'package:homescouter_app/pages/Login.dart';
 import '../utils/constant_colors.dart';
 import '../widgets/app_button.dart';
 import '../services/auth_service.dart';
-import '../models/user_model.dart';
+import '../models/user_model.dart'; // UserModel 임포트
 
 class SignUp extends StatefulWidget {
   @override
@@ -40,12 +41,49 @@ class _SignUpState extends State<SignUp> {
     super.dispose();
   }
 
+  // 오류 다이얼로그 표시 도우미 메서드
+  void _showErrorDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('확인'),
+            onPressed: () {
+              Navigator.of(ctx).pop();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   // 회원가입 처리 메서드
   Future<void> _handleSignUp() async {
+    // 폼 유효성 검사
     if (_formKey.currentState?.validate() == true) {
       setState(() {
         _isLoading = true; // 로딩 시작
       });
+
+      // ⭐️ 중요: FCM 토큰 가져오기 및 유효성 검사
+      String? fcmToken = await FirebaseMessaging.instance.getToken();
+      print('회원가입 시도: 가져온 FCM 토큰: "$fcmToken"'); // 디버깅을 위한 로그
+
+      // FCM 토큰이 null이거나 빈 문자열인지 확인
+      if (fcmToken == null || fcmToken.isEmpty) {
+        _showErrorDialog(
+          '알림 설정 오류',
+          '기기 알림 설정을 초기화할 수 없습니다. 잠시 후 다시 시도하거나, 앱을 재설치 해주세요.',
+        );
+        setState(() {
+          _isLoading = false; // 로딩 종료
+        });
+        print('FCM Token이 null이거나 빈 문자열이어서 회원가입을 중단합니다.');
+        return; // 토큰이 유효하지 않으면 회원가입 중단
+      }
 
       try {
         final UserModel newUser = await _authService.signUp(
@@ -54,6 +92,7 @@ class _SignUpState extends State<SignUp> {
           password: _passwordController.text.trim(),
           phone: _phoneController.text.trim(),
           tapoCode: _tapoController.text.trim(),
+          fcmToken: fcmToken, // ⭐️ FCM 토큰을 AuthService.signUp에 전달
         );
 
         // 성공 메시지 및 로그인 페이지로 이동
@@ -61,27 +100,22 @@ class _SignUpState extends State<SignUp> {
           SnackBar(
             content: Text("${newUser.name}님, 회원가입이 완료되었습니다!"),
             backgroundColor: Constants.primaryColor,
+            duration: const Duration(seconds: 3),
           ),
         );
+        // 회원가입 성공 후 로그인 페이지로 이동 (이전 페이지 스택 제거)
         Navigator.of(
           context,
         ).pushReplacement(MaterialPageRoute(builder: (context) => Login()));
       } on AuthException catch (e) {
-        // 정의된 인증 예외 처리
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("회원가입 실패: ${e.message}"),
-            backgroundColor: Colors.red,
-          ),
-        );
+        // 정의된 인증 예외 처리 (백엔드에서 발생한 특정 오류 메시지)
+        _showErrorDialog("회원가입 실패", "회원가입에 실패했습니다: ${e.message}");
         print("회원가입 오류: ${e.message}");
       } catch (e) {
         // 그 외 알 수 없는 오류
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("알 수 없는 오류가 발생했습니다. 다시 시도해주세요."),
-            backgroundColor: Colors.red,
-          ),
+        _showErrorDialog(
+          "알 수 없는 오류",
+          "서버와의 통신 중 알 수 없는 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
         );
         print("예상치 못한 오류: $e");
       } finally {
@@ -153,7 +187,7 @@ class _SignUpState extends State<SignUp> {
                         ),
                         validator: (value) =>
                             (value == null || value.trim().isEmpty)
-                            ? "이름을 입력하세요"
+                            ? "이름을 입력하세요."
                             : null,
                       ),
                       SizedBox(height: 13),
@@ -176,7 +210,7 @@ class _SignUpState extends State<SignUp> {
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return "아이디(이메일)를 입력하세요";
+                            return "아이디(이메일)를 입력하세요.";
                           }
                           // 간단한 이메일 유효성 검사 (더 강력한 정규식 사용 가능)
                           if (!value.contains('@') || !value.contains('.')) {
@@ -216,7 +250,7 @@ class _SignUpState extends State<SignUp> {
                         validator: (value) =>
                             (value == null ||
                                 value.trim().length < 6) // Firebase 최소 6자 권장
-                            ? "6글자 이상 비밀번호를 입력하세요"
+                            ? "6글자 이상 비밀번호를 입력하세요."
                             : null,
                       ),
                       SizedBox(height: 13),
@@ -240,7 +274,7 @@ class _SignUpState extends State<SignUp> {
                         validator: (value) =>
                             (value == null ||
                                 value.trim().length < 10) // 실제 전화번호 길이 고려
-                            ? "유효한 전화번호를 입력하세요"
+                            ? "유효한 전화번호를 입력하세요."
                             : null,
                       ),
                       SizedBox(height: 13),
@@ -263,7 +297,7 @@ class _SignUpState extends State<SignUp> {
                         ),
                         validator: (value) =>
                             (value == null || value.trim().isEmpty)
-                            ? "기기 코드를 입력하세요"
+                            ? "기기 코드를 입력하세요."
                             : null,
                       ),
                       SizedBox(height: 27),
@@ -273,7 +307,7 @@ class _SignUpState extends State<SignUp> {
                             : "회원가입 완료", // 로딩 상태에 따라 텍스트 변경
                         type: ButtonType.PRIMARY,
                         onPressed: _isLoading
-                            ? () {} // <-- 로딩 중일 때 null 대신 비어있는 익명 함수를 전달합니다.
+                            ? () {} // ⭐️ 로딩 중일 때는 빈 함수 전달로 비활성화
                             : () {
                                 _handleSignUp(); // _handleSignUp()를 호출합니다.
                               },
@@ -292,6 +326,7 @@ class _SignUpState extends State<SignUp> {
               ),
               TextButton(
                 onPressed: () {
+                  // 로그인 페이지로 이동 (이전 페이지 스택 제거)
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(builder: (context) => Login()),
                   );
